@@ -1,0 +1,21 @@
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if username %}
+    <title>{{username}}'s Profile</title>
+    {% else %}
+    <title>Mal-Time</title>
+    {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles.css')}}">
+    <script src="{{ url_for('static',filename='js.js')}}" ></script>
+</head>
+<header>
+    <a href="/"><h1 id="title">MAL-TIME</h1></a>
+    <nav>
+        <ul>
+            <li> <a href="/">Home</a> </li>
+            <li> <a href="/">Profile</a></li>
+        </ul>
+    </nav>
+</header>
