@@ -1,16 +1,18 @@
+<!DOCTYPE html>
+<html lang="en-EN,fr-FR">
 <head>
+    {% block head %}
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% if username %}
-    <title>{{username}}'s Profile</title>
-    {% else %}
-    <title>Mal-Time</title>
-    {% endif %}
-    <link rel="stylesheet" href="{{ url_for('static',filename='styles.css')}}">
-    <script src="{{ url_for('static',filename='js.js')}}" ></script>
+    <title>{% block title %}{% endblock %} Mal-Time</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles.css')}}" type="text/css">
+    <script type="text/javascript" src="{{ url_for('static',filename='js.js')}}" ></script>
+    {% endblock %}
 </head>
+<body>
 <header>
+    {% block header %}
     <a href="/"><h1 id="title">MAL-TIME</h1></a>
     <nav>
         <ul>
@@ -18,4 +20,19 @@
             <li> <a href="/">Profile</a></li>
         </ul>
     </nav>
+    {% endblock %}
 </header>
+{% block form %}
+<form method="POST" accept-charset="UTF-8" id="form">
+    <!-- <div> -->
+        <input placeholder="MyAnimeList User" type="text" id="user" autocorrect="off">
+    <!-- </div> -->
+    <div id="div-submit">
+        <input type="submit" value="Start" id="submit">
+    </div>
+</form>
+{% endblock %}
+{% block user %}
+{% endblock %}
+</body>
+</html>

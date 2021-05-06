@@ -1,8 +1,11 @@
-<!DOCTYPE html>
-<html lang="en-EN,fr-FR">
-{% include 'header.html' %}
+{% extends 'header.html' %}
+{% block head %}
+{{ super()}}
+{% endblock %}
+{% block title %}404 Not Found -{% endblock %}
+{% block form %}
 <body>
-    <p id="error">404 ERROR</p>
+    <p id="error">404 Not Found</p>
     <p id="error">Page Not Found</p>
 </body>
-</html>
+{% endblock %}

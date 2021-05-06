@@ -71,3 +71,10 @@ form{
     background-color: rgb(10, 10, 10);
     cursor: pointer;
 }
+    /* Profile */
+img{
+    align-items: center;
+}
+#profile{
+    justify-content: center;
+}

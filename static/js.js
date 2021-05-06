@@ -5,7 +5,7 @@ window.onload=function(){
         form.addEventListener("submit", function (e){
             e.preventDefault();
             if(user.value){
-                window.location.href += "users/" + user.value;
+                window.location.href += "users/" + user.value.trim() + "/";
             }
         })
     }

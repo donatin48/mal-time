@@ -1,12 +1,21 @@
-<!DOCTYPE html>
-<html lang="en-EN,fr-FR">
-{% include 'header.html' %}
-
+{% extends 'header.html' %}
+{% block head %}
+{{super()}}
+{% endblock %}
+{% block title %}{{username}} -{% endblock %}
+{% block form %}
+{% endblock %}
+{% block user %}
+<a href="https://myanimelist.net/profile/{{username}}" target="_blank"><img src="{{user['image_url']}}" id="profile"></a>
 <p>
-    hello 
+    Hello 
     <a rel="noreferrer" href="https://myanimelist.net/profile/{{username}}" target="_blank">
     {{username}}
-    </a>
+</a></p>
+
+<p>
+    if you want use your data : <a href="/api/{{username}}">Here </a>
 </p>
-</body>
-</html>
+
+
+{% endblock %}
