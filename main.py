@@ -4,7 +4,8 @@ from flask.helpers import url_for
 from flask_talisman import Talisman
 from jikanpy import Jikan
 from datetime import datetime
-
+import sqlite3
+from flask import g
 csp = {
    'default-src': [
       '\'self\''
@@ -15,6 +16,7 @@ csp = {
       'https://cdn.myanimelist.net/images/userimages/*'
    ]
 }
+DATABASE = 'db.db'
 app = Flask(__name__,template_folder="templates",static_folder="static")
 Talisman(app,force_https=True,force_https_permanent=True,content_security_policy=csp)
 app.jinja_env.trim_blocks = True
@@ -26,6 +28,44 @@ jikan = Jikan()
 @app.route('/index/', methods=['GET', 'POST'])
 def index():
    return render_template("index.html")
+
+def get_db():
+   db = getattr(g, '_database', None)
+   if db is None:
+      db = g._database = sqlite3.connect(DATABASE)
+   db.row_factory = sqlite3.Row
+   return db
+
+@app.teardown_appcontext
+def close_connection(exception):
+   db = getattr(g, '_database', None)
+   if db is not None:
+      db.close()
+
+def query_db(query, args=(), one=False):
+    cur = get_db().cursor().execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+def db_len_users():
+   return query_db("select count(*) from users")
+
+def db_create_user(username,mal_id):
+   cur = get_db().cursor()
+   print(str(username))
+   cur.execute(f'''INSERT INTO users("id","mal_id","username") 
+   VALUES (?,{int(mal_id)},"{str(username)}"); ''')
+   cur.execute(f'''INSERT INTO "main"."anime"("id","user_id","anime") 
+   VALUES (?,0,NULL); ''')
+   print("test")
+
+@app.route('/db')
+def db():
+   l = []
+   for row in query_db("select count(*) from users"):
+      l += list(row)
+   return str(l)
 
 def time():
    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -40,30 +80,27 @@ def dbc(len,user):
    with open("static/db.json","w+") as f:
       print("sucessfull created")
       return JSON.dump(feeds,f, indent=4, separators=(',', ': '))
-# def dbsearch(user):
-#    users = dbr()["users"]
-#    for c in users :
-#       if c == 
-#    return 
-@app.route('/users/<username>/', methods=['GET', 'POST'])
-def users(username):
+
+
+@app.route('/user/<username>/', methods=['GET', 'POST'])
+def user(username):
    try:
       user = jikan.user(username)
       if not user["image_url"]:
-         user["image_url"] = url_for('static',filename='nonepicture.png')
+        user["image_url"] = url_for('static',filename='nonepicture.png')
    except:
-      return jsonify(status=400,message="username not found",error=None), 400
+        return jsonify(status=400,message="username not found",error=None), 400
    else:
       users = dbr()
       create = False
       for c in users["users"]:
          if int(c) == int(user["user_id"]):
-            print("login...")
-            create = True
-            break
+               print("login...")
+               create = True
+               break
       if create == False:
          print(f"New user : {username}")
-         print(len(users["users"]))
+         # db_create_user(username,user["user_id"])
          dbc(len(users["users"]),user)
    return render_template("profile.html",username=username,user=user)
 
@@ -71,7 +108,6 @@ def users(username):
 def json(username):
    # user = jikan.user(username)
    return jsonify(dbr()["users"])
-
 
 
 
