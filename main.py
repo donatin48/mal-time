@@ -2,6 +2,7 @@ from flask import Flask , render_template , request , redirect , send_from_direc
 from flask import json as JSON
 from flask.helpers import url_for
 from flask_talisman import Talisman
+import logging
 from jikanpy import Jikan
 from datetime import datetime
 import sqlite3
@@ -110,9 +111,6 @@ def json(username):
    return jsonify(dbr()["users"])
 
 
-
-
-
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
@@ -120,11 +118,11 @@ def page_not_found(e):
 @app.route('/favicon.ico')
 @app.route('/robots.txt')
 @app.route('/sitemap.xml')
-def static_from_root():
+async def static_from_root():
    return send_from_directory(app.static_folder, request.path[1:])
 
 @app.before_request
-def before_request():
+async def before_request():
    if request.url.startswith('http://'):
       url = request.url.replace('http://', 'https://', 1)
       code = 301

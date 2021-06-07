@@ -7,10 +7,10 @@
 {% block form %}
 {% endblock %}
 {% block user %}
-<a href="https://myanimelist.net/profile/{{username}}" target="_blank"><img src="{{user['image_url']}}" id="profile"></a>
+<a href="https://myanimelist.net/profile/{{username}}" target="_blank"><img src="{{user['image_url']}}" id="profile" alt="Myanimelist {{username}}'s profile"></a>
 <p>
     Hello 
-    <a rel="noreferrer" href="https://myanimelist.net/profile/{{username}}" target="_blank">
+    <a href="https://myanimelist.net/profile/{{username}}" target="_blank" alt="Myanimelist {{username}}'s profile">
     {{username}}
 </a></p>
 
