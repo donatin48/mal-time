@@ -1,1 +1,1 @@
-authbind --deep gunicorn    -w 4 --threads 14   --preload   --log-level=debug  --reload  --bind 0.0.0.0:443 --bind 0.0.0.0:80 --certfile=ssl/final.crt --keyfile=ssl/key.key __init__:app
+authbind --deep gunicorn -w 1 --threads 5  --log-level=debug --reload --reload-extra-file templates/index.html --reload-extra-file templates/header.html --reload-extra-file templates/profile.html  --bind 0.0.0.0:443 --bind 0.0.0.0:80 --certfile=ssl/final.crt --keyfile=ssl/key.key __init__:app
