@@ -1,0 +1,35 @@
+{% extends 'header.html' %}
+{% block head %}
+{{super()}}
+    <meta name="description" content="About Mal-Time">
+    <link rel="canonical" href="https://lelab.ml/about/"/>
+{% endblock %}
+{% block form %}
+{% endblock %}
+{% block user %}
+
+<div id="about">
+    <div>
+        <h2>
+            About
+        </h2>
+        <p>
+            This website scrap every hours yours Myanimelist stats (WIP) with <a class="orange" href="https://jikan.moe/">Jikan</a> and create charts. In Python with Flask.
+        </p>
+    </div> <br>
+    <div>
+        <h2>
+            API
+        </h2>
+        <p>
+            HTTP GET : <br> 
+            <p class="orange">
+            /api/v1/username/&lt;username&gt; <br>
+            /api/v1/mal_id/&lt;mal_id&gt; <br>
+            /api/v1/id/&lt;id&gt;</p>
+        </p>
+    </div>
+</div>
+
+{% endblock %}
+

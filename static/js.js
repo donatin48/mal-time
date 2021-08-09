@@ -30,6 +30,41 @@ function ApplyProfile(){
     document.getElementById("btnprofile").href = "https://lelab.ml/user/" + username + "/";
 }
 
-}
+var ctx = document.getElementById('graph1');
+if(ctx){
 
+
+
+
+const labels = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+];
+
+const data = {
+    labels: labels,
+    datasets: [{
+        label: 'test',
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: [0, 10, 5, 2, 20, 30, 45],
+    }]
+};
+
+const config = {
+    type: 'line',
+    data,
+    options: {}
+    };
+
+var graph1 = new Chart(ctx,config);
+
+
+
+}
+}
 

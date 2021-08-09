@@ -15,6 +15,10 @@ csp = {
       '\'self\'',
       '*.myanimelist.net',
       'https://cdn.myanimelist.net/images/userimages/*'
+   ],
+   'script-src': [
+	   '\'self\'',
+	   'https://cdnjs.cloudflare.com',
    ]
 }
 DATABASE = 'db.db'
@@ -25,11 +29,11 @@ Talisman(app,force_https=True,force_https_permanent=True,content_security_policy
 app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
-
+app.config['JSON_SORT_KEYS'] = False
 jikan = Jikan()
 
-@app.route('/', methods=['GET','POST'])
-@app.route('/index/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
+@app.route('/index/', methods=['GET'])
 def index():
    return render_template("index.html")
 
@@ -52,6 +56,13 @@ def query_db(query, args=(), one=False):
      cur.close()
      return (rv[0] if rv else None) if one else rv
 
+def query_commit(query, args=()):
+	conn = db_connection()
+	cur = conn.cursor()
+	cur.execute(query,args)
+	conn.commit()
+	cur.close()
+
 def db_len_users():
    return query_db("select count(*) from users")
 
@@ -59,65 +70,104 @@ def db_create_user(username,mal_id):
    conn = db_connection()
    cur = conn.cursor()
    print(str(username))
-   cur.execute(f'''INSERT INTO "main"."users"("mal_id","username") VALUES (?,?); ''',(int(mal_id),str(username))) 
+   cur.execute('''INSERT INTO "main"."users"("mal_id","username") VALUES (?,?); ''',(int(mal_id),str(username))) 
    # cur.execute(f'''INSERT INTO "main"."anime"("mal_id") VALUES (?); ''',(int(mal_id),)) 
    # cur.execute(f'''INSERT INTO "main"."anime"("mal_id","days_watched","mean_score","watching","completed","on_hold","dropped","plan_to_watch","rewatched","episodes_watched") VALUES (?,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL); ''',int(mal_id)) 
    print("succes")
    conn.commit()
+   cur.close()
 
-@app.route('/db')
-def db_():
-   db_create_user("donatin48",8473021)
-   l = []
-   for row in query_db("select * from users"):
-      l += list(row)
-   return str(l)
 
 def time():
    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-def dbr():
-   with open("static/db.json") as f:
-      return JSON.load(f)
-
-def dbc(len,user,users):
-   users["users"][user["user_id"]] = {"id" : len,"username" : user["username"],"mal-time creation" : time()}
-   with open("static/db.json","w+") as f:
-      print("sucessfull created")
-      return JSON.dump(users,f, indent=4, separators=(',', ': '),sort_keys=False)
-
 @app.route('/user/<username>/refresh/', methods=['GET'])
 def userefresh(username):
+   try:
+	   user = jikan.user(username)
+   except:
+      return jsonify(status=400,message="username not found",error=None), 400
+   else:
+      id = user["user_id"]
+      if query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ? and "username" = ?''',args=[id,username],one=True):  # already in db : update lastscrap
+         query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime('now', 'localtime') WHERE "mal_id" = ? ''',[id])
+      elif query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ?''',args=[id],one=True):   # need to change username 
+         query_commit('''UPDATE "main"."users" SET "username"= ? WHERE "mal_id"= ? ''',[username,id])
+      else:
+         query_commit('''INSERT INTO "main"."users"("mal_id","username") VALUES (?,?)''',[id,username])   # new user
+      # add anime stats data
+      query_commit('''
+      INSERT INTO "main"."anime"("mal_id","days_watched","mean_score","watching","completed","on_hold","dropped","plan_to_watch","rewatched","episodes_watched") VALUES (?,?,?,?,?,?,?,?,?,?)''',
+      [user["user_id"],user["anime_stats"]["days_watched"],user["anime_stats"]["mean_score"],user["anime_stats"]["watching"],user["anime_stats"]["completed"],user["anime_stats"]["on_hold"],user["anime_stats"]["dropped"],user["anime_stats"]["plan_to_watch"],user["anime_stats"]["rewatched"],user["anime_stats"]["episodes_watched"]]
+      )
+      return redirect(f"https://lelab.ml/user/{username}/", code=302)
 
+@app.route('/alldb/')
+def func_name():
+	a = ""
+	for user in query_db('select * from anime where mal_id = 8473021 '):
+		a += f"{list(user)}<br>"
+	return a
 
-   return "WIP"
+def UserExistUsername(username):
+   data = query_db('''SELECT mal_id FROM "main"."users" WHERE username = ? ''',args=[username],one=True)
+   if not data :
+      return False
+   else :
+      return True
+
+def UserExist(id):
+   data = query_db('''SELECT mal_id FROM "main"."users" WHERE mal_id = ? ''',args=[id],one=True)
+   if not data :
+      return False
+   else :
+      return True
 
 @app.route('/user/<username>/', methods=['GET'])
 def user(username):
-   try:
-      user = jikan.user(username)
-      if not user["image_url"]:
-        user["image_url"] = url_for('static',filename='nonepicture.png')
-   except:
-        return jsonify(status=400,message="username not found",error=None), 400
-   else:
-      users = dbr()
-      created = False
-      for c in users["users"]:
-         if int(c) == int(user["user_id"]):
-               print("login...")
-               created = True
-               break
-      if created == False:
-         print(f"New user : {username}")
-         # db_create_user(username,user["user_id"])
-         dbc(len(users["users"]),user,users)
-   return render_template("profile.html",username=username,user=user)
+   existingUser = UserExistUsername(username)
+   user = {}
+   if not existingUser :
+      user["image_url"] = url_for('static',filename='nonepicture.png')
+      return render_template("profile.html",username=username,user=user,new=True)
 
-@app.route('/api/v1/<username>', methods=['GET', 'POST'])
-def json(username):
-   # user = jikan.user(username)
-   return jsonify(dbr()["users"])
+   id = query_db('''SELECT mal_id FROM "main"."users" WHERE username = ? ''',args=[username],one=True)[0]
+   user["image_url"] = f"https://cdn.myanimelist.net/images/userimages/{id}.jpg"
+
+   return render_template("profile.html",username=username,user=user,new=False)
+
+@app.route('/about/')
+def about():
+    return render_template('about.html')
+
+
+def jsonError(user,data):
+	if not data : data = {}
+	if not user:
+		return jsonify(status=404,message="not found"), 404
+	else:
+		d = []
+		for item in data:
+			d.append({k: item[k] for k in item.keys()})
+		return jsonify(user=dict(user),data=d)
+
+@app.route('/api/v1/username/<username>', methods=['GET', 'POST'])
+def jsonUsername(username):
+   user = query_db('select * from users where username = ?',[username], one=True)
+   data = query_db('select * from anime where mal_id = ?',[user["mal_id"]], one=False)
+   return jsonError(user,data)
+
+@app.route('/api/v1/mal_id/<mal_id>', methods=['GET', 'POST'])
+def jsonMalId(mal_id):
+   user = query_db('select * from users where mal_id = ?',[mal_id], one=True)
+   data = query_db('select * from anime where mal_id = ?',[mal_id], one=False)
+   return jsonError(user,data)
+
+@app.route('/api/v1/id/<id>', methods=['GET', 'POST'])
+def jsonId(id):
+   user = query_db('select * from users where id = ?',[id], one=True)
+   data = query_db('select * from anime where mal_id = ?',[user["mal_id"]], one=False)
+   return jsonError(user,data)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -135,6 +185,9 @@ async def before_request():
       url = request.url.replace('http://', 'https://', 1)
       code = 301
       return redirect(url, code=code)
+   # elif request.url.endswith("refresh/"):
+   #    g.request_start_time = time.time()
+   #    g.request_time = lambda: "%.5fs" % (time.time() - g.request_start_time)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

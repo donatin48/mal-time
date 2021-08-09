@@ -2,6 +2,7 @@
 {% block head %}
 {{super()}}
     <meta name="description" content="Watch the evolution of {{username}} Myanimelist time">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.0/chart.min.js"></script>
 {% endblock %}
 {% block title %}{{username}} -{% endblock %}
 {% block form %}
@@ -13,6 +14,11 @@
 </div>
 <br>
 <div class="btndiv">
+    {% if new %}
+    <p class="bold">
+        You are new click to Update to scrap
+    </p>
+    {% endif %}
     <a href="refresh/" class="btn">
         Update
     </a>
@@ -24,13 +30,20 @@
 <div>
     <p>
         Hello 
-        <a href="https://myanimelist.net/profile/{{username}}" target="_blank" alt="Myanimelist {{username}}'s profile">
+        <a href="https://myanimelist.net/profile/{{username}}" class="orange" target="_blank" alt="Myanimelist {{username}}'s profile">
         {{username}}
         </a>
     </p>
     <p>
-        if you want use your data : <a href="/api/v1/{{username}}">Here </a>
+        if you want use your data : <a href="/api/v1/username/{{username}}" class="orange">Here </a>
     </p>
 </div>
-
+<div>
+    <h2>
+        Charts (WIP)
+    </h2>
+    <div id="chart-container">
+        <canvas id="graph1" width="400" height="400"></canvas>
+    </div>
+</div>
 {% endblock %}

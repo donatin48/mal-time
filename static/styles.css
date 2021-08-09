@@ -1,12 +1,16 @@
     /* Title */
 body{
-    background-color: rgb(220, 220, 220);
-    color: #393E46;
+    /* background-color: rgb(220, 220, 220);
+    color: #393E46;     */
+    background-color: rgb(52, 52, 52);
+    color: white;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 #title{
     text-align: center;
     line-height: 1em;
+    /* color: rgb(27, 32, 40); */
+    color: white;
 }
 #title, a:link{
     text-decoration: none!important;
@@ -28,7 +32,8 @@ ul{
     padding: 0;
     overflow: hidden;
     list-style-type: none;
-    background-color: rgb(0,191,255);
+    /* background-color: rgb(0,191,255); */
+    background-color: rgb(70, 70, 70);
 }
 li {
     float: left;
@@ -36,13 +41,17 @@ li {
 li a{
     text-align: center;
     display: block;
-    background-color: rgb(0,191,255);
+    /* background-color: rgb(0,191,255); */
+    background-color: rgb(70, 70, 70);
     color: white;
     padding: 14px 16px;
     text-decoration: none;
 }
 li a:hover{
     background-color: rgb(10, 10, 10);
+}
+.right{
+    float: right;
 }
     /* Form */
 form{
@@ -71,6 +80,14 @@ form{
     background-color: rgb(10, 10, 10);
     cursor: pointer;
 }
+    /* About */
+
+#about{
+    padding-top: 25px;
+    padding-left: 15vw;
+}
+
+
     /* Profile */
 #center{
     display: block;
@@ -102,3 +119,17 @@ a.btn:hover{
     margin-left: 4%;
     display: inline-block;
 }
+.bold{
+    font-weight: bold;
+}
+.orange{
+    color: #ee8887;
+}
+/* CHARTS */
+#chart-container{
+    position: relative; 
+    height:30vh; 
+    width:40vw;
+}
+
+
