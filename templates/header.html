@@ -25,13 +25,16 @@
 </header>
 {% block form %}
 <form method="POST" accept-charset="UTF-8" id="form">
-    <!-- <div> -->
-        <input placeholder="MyAnimeList User" type="text" id="user" autocorrect="off">
-    <!-- </div> -->
+    <input placeholder="MyAnimeList User" type="text" id="user" autocorrect="off">
     <div id="div-submit">
         <input type="submit" value="Start" id="submit">
     </div>
 </form>
+<div>
+    <p id="IndexUsers">
+        <i>{{users}} Users !!</i>
+    </p>
+</div>
 {% endblock %}
 {% block user %}
 {% endblock %}

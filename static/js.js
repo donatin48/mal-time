@@ -33,7 +33,15 @@ function ApplyProfile(){
 var ctx = document.getElementById('graph1');
 if(ctx){
 
-
+var username = document.getElementById("username").innerText
+fetch("https://lelab.ml/api/v1/username/" + username )
+.then(function(response) {
+    return response.json();
+})
+.then(function(jsonResponse) {
+    var data = jsonResponse 
+    console.log(data)
+});
 
 
 const labels = [

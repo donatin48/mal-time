@@ -32,10 +32,14 @@ app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 app.config['JSON_SORT_KEYS'] = False
 jikan = Jikan()
 
+def db_len_users():
+   return query_db('''SELECT "seq" FROM "main"."sqlite_sequence" WHERE "name"= 'users' ''',one=True)["seq"]
+
 @app.route('/', methods=['GET'])
 @app.route('/index/', methods=['GET'])
 def index():
-   return render_template("index.html")
+   users = db_len_users()
+   return render_template("index.html",users=users)
 
 def db_connection():
    db = getattr(g, '_database', None)
@@ -63,9 +67,6 @@ def query_commit(query, args=()):
 	conn.commit()
 	cur.close()
 
-def db_len_users():
-   return query_db("select count(*) from users")
-
 def db_create_user(username,mal_id):
    conn = db_connection()
    cur = conn.cursor()
@@ -90,7 +91,7 @@ def userefresh(username):
    else:
       id = user["user_id"]
       if query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ? and "username" = ?''',args=[id,username],one=True):  # already in db : update lastscrap
-         query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime('now', 'localtime') WHERE "mal_id" = ? ''',[id])
+         query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[id])
       elif query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ?''',args=[id],one=True):   # need to change username 
          query_commit('''UPDATE "main"."users" SET "username"= ? WHERE "mal_id"= ? ''',[username,id])
       else:
@@ -150,6 +151,15 @@ def jsonError(user,data):
 		for item in data:
 			d.append({k: item[k] for k in item.keys()})
 		return jsonify(user=dict(user),data=d)
+
+@app.cli.command()
+def scheduled():
+    """Run scheduled job."""
+    users = query_db(''' ''')
+
+    time.sleep(5)
+    print('Users:')
+    print('Done!')
 
 @app.route('/api/v1/username/<username>', methods=['GET', 'POST'])
 def jsonUsername(username):

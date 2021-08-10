@@ -25,6 +25,12 @@ body{
     color: red;
     text-align: center;
 }
+    /* index */
+#IndexUsers{
+    text-align: center;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
     /* Nav */
 ul{
     font-size: large;
