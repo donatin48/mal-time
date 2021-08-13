@@ -86,25 +86,27 @@ def time():
 
 @app.route('/user/<username>/refresh/', methods=['GET'])
 def userefresh(username):
-	try:
-		user = jikan.user(username)
-	except:
-		return jsonify(status=400,message="username not found",error=None), 400
-	else:
-		id = user["user_id"]
-		if query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ? and "username" = ?''',args=[id,username],one=True):  # already in db : update lastscrap
-			query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[id])
-		elif query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ?''',args=[id],one=True):   # need to change username 
-			query_commit('''UPDATE "main"."users" SET "username"= ? WHERE "mal_id"= ? ''',[username,id])	
-			query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[id])	 
-		else:
-			query_commit('''INSERT INTO "main"."users"("mal_id","username") VALUES (?,?)''',[id,username])   # new user
-		# add anime stats data
-		query_commit('''
-		INSERT INTO "main"."anime"("mal_id","days_watched","mean_score","watching","completed","on_hold","dropped","plan_to_watch","rewatched","episodes_watched") VALUES (?,?,?,?,?,?,?,?,?,?)''',
-		[user["user_id"],user["anime_stats"]["days_watched"],user["anime_stats"]["mean_score"],user["anime_stats"]["watching"],user["anime_stats"]["completed"],user["anime_stats"]["on_hold"],user["anime_stats"]["dropped"],user["anime_stats"]["plan_to_watch"],user["anime_stats"]["rewatched"],user["anime_stats"]["episodes_watched"]]
-		)
-		return redirect(f"https://lelab.ml/user/{username}/", code=302)
+   try:
+      user = jikan.user(username)
+   except:
+      return jsonify(status=400,message="username not found",error=None), 400
+
+
+   id = user["user_id"]
+   if query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ? and "username" = ?''',args=[id,username],one=True):  # already in db : update lastscrap
+      query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[id])
+   elif query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ?''',args=[id],one=True):   # need to change username 
+      query_commit('''UPDATE "main"."users" SET "username"= ? WHERE "mal_id"= ? ''',[username,id])	
+      query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[id])	 
+   else:
+      query_commit('''INSERT INTO "main"."users"("mal_id","username") VALUES (?,?)''',[id,username])   # new user
+   # add anime stats data
+   query_commit('''
+   INSERT INTO "main"."anime"("mal_id","days_watched","mean_score","watching","completed","on_hold","dropped","plan_to_watch","rewatched","episodes_watched") VALUES (?,?,?,?,?,?,?,?,?,?)''',
+   [user["user_id"],user["anime_stats"]["days_watched"],user["anime_stats"]["mean_score"],user["anime_stats"]["watching"],user["anime_stats"]["completed"],user["anime_stats"]["on_hold"],user["anime_stats"]["dropped"],user["anime_stats"]["plan_to_watch"],user["anime_stats"]["rewatched"],user["anime_stats"]["episodes_watched"]]
+   )
+   return redirect(f"https://lelab.ml/user/{username}/", code=302)
+
 
 @app.route('/alldb/')
 def func_name():
@@ -162,12 +164,14 @@ def scheduled():
 	print(f"----- {finaltime} Start -----")
 	for user in query_db('''SELECT username,mal_id FROM users'''):
 		print(f"[{datetime.now()}] --> {user['username']} ",end="")
-		try:
-			jikan_user = jikan.user(user["username"])
-		except Exception as inst:
-			print(f"{inst.args} error retrying ")
-			te.sleep(20)
-			continue
+		for _ in range(3):
+			try:
+				jikan_user = jikan.user(user["username"])
+			except Exception as inst:
+				print(f"{inst.args} error retrying ")
+				te.sleep(20)
+				continue
+			break
 		time0 = te.time()
 		print(f"finished   [{datetime.now()}]")
 		if query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ? and "username" = ?''',args=[user["mal_id"],user["username"]],one=True):  # already in db : update lastscrap
