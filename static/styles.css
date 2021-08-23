@@ -133,10 +133,13 @@ a.btn:hover{
 }
 /* CHARTS */
 #chart-container{
-    
     /* height:30vh; 
     width:40vw; */
-    width:600px;
+    width:700px;
+    position: relative;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 @media only screen and (max-width: 650px) {
     #chart-container{
@@ -144,6 +147,5 @@ a.btn:hover{
     width:350px;
 }
 }
-
 
 

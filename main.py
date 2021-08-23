@@ -19,8 +19,8 @@ csp = {
       'https://cdn.myanimelist.net/images/userimages/*'
    ],
    'script-src': [
-	   '\'self\'',
-	   'https://cdnjs.cloudflare.com',
+       '\'self\'',
+       'https://cdnjs.cloudflare.com',
    ]
 }
 DATABASE = 'db.db'
@@ -63,11 +63,11 @@ def query_db(query, args=(), one=False):
      return (rv[0] if rv else None) if one else rv
 
 def query_commit(query, args=()):
-	conn = db_connection()
-	cur = conn.cursor()
-	cur.execute(query,args)
-	conn.commit()
-	cur.close()
+    conn = db_connection()
+    cur = conn.cursor()
+    cur.execute(query,args)
+    conn.commit()
+    cur.close()
 
 def db_create_user(username,mal_id):
    conn = db_connection()
@@ -110,10 +110,10 @@ def userefresh(username):
 
 @app.route('/alldb/')
 def func_name():
-	a = ""
-	for user in query_db('select * from anime where mal_id = 8473021 '):
-		a += f"{list(user)}<br>"
-	return a
+    a = ""
+    for user in query_db('select * from anime where mal_id = 8473021 '):
+        a += f"{list(user)}<br>"
+    return a
 
 def UserExistUsername(username):
    data = query_db('''SELECT mal_id FROM "main"."users" WHERE username = ? ''',args=[username],one=True)
@@ -148,53 +148,57 @@ def about():
 
 
 def jsonError(user,data):
-	if not data : data = {}
-	if not user:
-		return jsonify(status=404,message="not found"), 404
-	else:
-		d = []
-		for item in data:
-			d.append({k: item[k] for k in item.keys()})
-		return jsonify(user=dict(user),data=d)
+    if not data : data = {}
+    if not user:
+        return jsonify(status=404,message="not found"), 404
+    else:
+        d = []
+        for item in data:
+            d.append({k: item[k] for k in item.keys()})
+        return jsonify(user=dict(user),data=d)
 
 @app.cli.command()
 def scheduled():
-	finaltime = datetime.now()
-	print("\n")
-	print(f"----- {finaltime} Start -----")
-	for user in query_db('''SELECT username,mal_id FROM users'''):
-		print(f"[{datetime.now()}] --> {user['username']} ",end="")
-		for _ in range(3):
-			try:
-				jikan_user = jikan.user(user["username"])
-			except Exception as inst:
-				print(f"{inst.args} error retrying ")
-				te.sleep(20)
-				continue
-			break
-		time0 = te.time()
-		print(f"finished   [{datetime.now()}]")
-		if query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ? and "username" = ?''',args=[user["mal_id"],user["username"]],one=True):  # already in db : update lastscrap
-			query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[user["mal_id"]])
-		elif query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ?''',args=[user["mal_id"]],one=True):   # need to change username 
-			query_commit('''UPDATE "main"."users" SET "username"= ? WHERE "mal_id"= ? ''',[user["username"],user["mal_id"]])
-			query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[user["mal_id"]])
-		query_commit('''
-		INSERT INTO "main"."anime"("mal_id","days_watched","mean_score","watching","completed","on_hold","dropped","plan_to_watch","rewatched","episodes_watched") VALUES (?,?,?,?,?,?,?,?,?,?)''',
-		[user["mal_id"],jikan_user["anime_stats"]["days_watched"],jikan_user["anime_stats"]["mean_score"],jikan_user["anime_stats"]["watching"],jikan_user["anime_stats"]["completed"],jikan_user["anime_stats"]["on_hold"],jikan_user["anime_stats"]["dropped"],jikan_user["anime_stats"]["plan_to_watch"],jikan_user["anime_stats"]["rewatched"],jikan_user["anime_stats"]["episodes_watched"]]
-		)
-		cal = te.time() - time0
-		print(f"[{datetime.now()}] query finished in {round(cal,3)} wait {round(4-cal)}")
-		if cal < 4 :
-			te.sleep(4-cal)
+    finaltime = datetime.now()
+    print("\n")
+    print(f"----- {finaltime} Start -----")
+    for user in query_db('''SELECT username,mal_id FROM users'''):
+        print(f"[{datetime.now()}] --> {user['username']} ",end="")
+        for c in range(3):
+            try:
+                jikan_user = jikan.user(user["username"])
+            except Exception as inst:
+                print(f"{inst.args} error retrying ",end="")
+                te.sleep(20)
+                if c == 3 : jikan_user = None
+                continue
+            break
+        if not jikan_user : continue
+        time0 = te.time()
+        print(f"finished   [{datetime.now()}]")
+        if query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ? and "username" = ?''',args=[user["mal_id"],user["username"]],one=True):  # already in db : update lastscrap
+            query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[user["mal_id"]])
+        elif query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ?''',args=[user["mal_id"]],one=True):   # need to change username 
+            query_commit('''UPDATE "main"."users" SET "username"= ? WHERE "mal_id"= ? ''',[user["username"],user["mal_id"]])
+            query_commit('''UPDATE "main"."users" SET "last_scrap"= datetime() WHERE "mal_id" = ? ''',[user["mal_id"]])
+        query_commit('''
+        INSERT INTO "main"."anime"("mal_id","days_watched","mean_score","watching","completed","on_hold","dropped","plan_to_watch","rewatched","episodes_watched") VALUES (?,?,?,?,?,?,?,?,?,?)''',
+        [jikan_user["user_id"],jikan_user["anime_stats"]["days_watched"],jikan_user["anime_stats"]["mean_score"],jikan_user["anime_stats"]["watching"],jikan_user["anime_stats"]["completed"],jikan_user["anime_stats"]["on_hold"],jikan_user["anime_stats"]["dropped"],jikan_user["anime_stats"]["plan_to_watch"],jikan_user["anime_stats"]["rewatched"],jikan_user["anime_stats"]["episodes_watched"]]
+        )
+        cal = te.time() - time0
+        print(f"[{datetime.now()}] query finished in {round(cal,3)} wait {round(4-cal)}")
+        if cal < 4 :
+            te.sleep(4-cal)
 
-	print(f"----- {datetime.now()} Finished in {datetime.now() - finaltime} -----")
+    print(f"----- {datetime.now()} Finished in {datetime.now() - finaltime} -----")
 
 @app.route('/api/v1/username/<username>', methods=['GET', 'POST'])
 def jsonUsername(username):
-   user = query_db('select * from users where username = ?',[username], one=True)
-   data = query_db('select * from anime where mal_id = ?',[user["mal_id"]], one=False)
-   return jsonError(user,data)
+	user = query_db('select * from users where username = ?',[username], one=True)
+	if not user :
+		return jsonify(status=404,message="username not found in db"), 404
+	data = query_db('select * from anime where mal_id = ?',[user["mal_id"]], one=False)
+	return jsonError(user,data)
 
 @app.route('/api/v1/mal_id/<mal_id>', methods=['GET', 'POST'])
 def jsonMalId(mal_id):
@@ -204,9 +208,11 @@ def jsonMalId(mal_id):
 
 @app.route('/api/v1/id/<id>', methods=['GET', 'POST'])
 def jsonId(id):
-   user = query_db('select * from users where id = ?',[id], one=True)
-   data = query_db('select * from anime where mal_id = ?',[user["mal_id"]], one=False)
-   return jsonError(user,data)
+	user = query_db('select * from users where id = ?',[id], one=True)
+	if not user :
+		return jsonify(status=404,message="id not found in db"), 404
+	data = query_db('select * from anime where mal_id = ?',[user["mal_id"]], one=False)
+	return jsonError(user,data)
 
 @app.errorhandler(404)
 def page_not_found(e):

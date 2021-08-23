@@ -16,7 +16,8 @@ if (set) {set.addEventListener("click",SetProfile)}
 
 function SetProfile(){
     localStorage.clear();
-    username = window.location.href.slice(22,-1);
+    // username = window.location.href.slice(22,-1);
+    username = document.getElementById("username").innerHTML.trim();
     localStorage.setItem('profile', username);
     ApplyProfile()
 }
@@ -55,15 +56,17 @@ console.log(mal_data)
 
 
 
-const labels = Array.from({length: mal_data["data"].length}, (_, i) => i + 1)
+// var labels = Array.from({length: mal_data["data"].length}, (_, i) => i + 1)
 
 var episodes_watched = []
 var completed = []
+var labels = []
 for (c of mal_data["data"]){
     episodes_watched.push(c["episodes_watched"])
     completed.push(c["completed"])
+    labels.push(c["scrap_date"].slice(0,11))
 }
-console.log(episodes_watched,completed);
+
 var data = {
     labels: labels,
     datasets: [{
@@ -74,30 +77,17 @@ var data = {
     }]
 };
 
+var options = {
+
+};
+
 var config = {
     type: 'line',
     data,
-    options: {}
-    };
+    options: options
+};
 
 var graph1 = new Chart(ctx1,config);
-
-var data = {
-    labels: labels,
-    datasets: [{
-        label: 'completed',
-        backgroundColor: 'rgb(255, 99, 132)',
-        borderColor: 'rgb(255, 99, 132)',
-        data: completed,
-    }]
-};
-var config2 = {
-    type: 'line',
-    data,
-    options: {}
-};
-
-var graph2 = new Chart(ctx2,config2);
 
 
 }
