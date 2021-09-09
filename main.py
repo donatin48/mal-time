@@ -170,10 +170,12 @@ def scheduled():
             except Exception as inst:
                 print(f"{inst.args} error retrying ",end="")
                 te.sleep(20)
-                if c == 3 : jikan_user = None
+                if c == 2 : jikan_user = None
                 continue
             break
-        if not jikan_user : continue
+        if not jikan_user :
+           print()
+           continue
         time0 = te.time()
         print(f"finished   [{datetime.now()}]")
         if query_db('''SELECT mal_id FROM "main"."users" WHERE "mal_id" = ? and "username" = ?''',args=[user["mal_id"],user["username"]],one=True):  # already in db : update lastscrap

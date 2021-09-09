@@ -64,7 +64,8 @@ var labels = []
 for (c of mal_data["data"]){
     episodes_watched.push(c["episodes_watched"])
     completed.push(c["completed"])
-    labels.push(c["scrap_date"].slice(0,11))
+    // labels.push(c["scrap_date"].slice(0,11))
+    labels.push(c["scrap_date"])
 }
 
 var data = {
